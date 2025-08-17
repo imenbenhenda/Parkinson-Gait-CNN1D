@@ -29,8 +29,7 @@ Développer un modèle de Deep Learning (CNN 1D) capable de détecter la maladie
 - Callback : EarlyStopping et ModelCheckpoint
 
 ## Instructions pour reproduire
-1. Installer les dépendances : `pip install -r requirements.txt`
-2. Placer les données dans le dossier `data/`
-3. Lancer l'entraînement : `python scripts/train_model.py`
-4. Voir les résultats et graphiques générés
-5. Tester des prédictions sur quelques exemples : `python scripts/test_model.py`
+1. Placer les données dans le dossier `data/`
+2. Lancer l'entraînement : `python scripts/train_model.py`
+3. Voir les résultats et graphiques générés
+4. Tester des prédictions sur quelques exemples : `python scripts/test_model.py`
