@@ -16,20 +16,7 @@ Développer un modèle de Deep Learning (CNN 1D) capable de détecter la maladie
 | Précision (Parkinson) | 91% |
 | Rappel (Parkinson)    | 67% |
 
-##  Architecture du modèle
 
-_________________________________________________________________
- Layer (type)                Output Shape              Param #   
-=================================================================
- Conv1D (16 filters)         (None, 2636, 16)          784       
- BatchNormalization          (None, 2636, 16)          64        
- MaxPooling1D                (None, 1318, 16)          0         
- Dropout (0.5)               (None, 1318, 16)          0         
- Conv1D (32 filters)         (None, 1316, 32)          1568      
- GlobalAveragePooling1D      (None, 32)                0         
- Dense (32 units)            (None, 32)                1056      
- Dense (2 units)             (None, 2)                 66        
-=================================================================
 
 ## Modèle
 - Réseau 1D-CNN avec :
