@@ -1,0 +1,12 @@
+# Ignorer l'environnement virtuel
+env/
+venv/
+
+# Fichiers Python temporaires
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
