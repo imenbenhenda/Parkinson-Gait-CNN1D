@@ -4,6 +4,7 @@
 Développer un modèle de Deep Learning (CNN 1D) capable de détecter la maladie de Parkinson à partir de signaux de marche mesurés par capteurs de force au sol (VGRF).
 
 ## Dataset
+  https://physionet.org/content/gaitpdb/1.0.0/
 - Capteurs de marche VGRF (16 capteurs par pied)
 - Données temporelles de personnes saines et atteintes de Parkinson
 - Prétraitement : normalisation et padding des signaux
