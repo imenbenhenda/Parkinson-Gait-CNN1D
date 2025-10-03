@@ -1,32 +1,73 @@
-# Détection de la Maladie de Parkinson à partir de la marche
+# Parkinson's Disease Detection from Gait Analysis
 
-## Objectif
-Développer un modèle de Deep Learning (CNN 1D) capable de détecter la maladie de Parkinson à partir de signaux de marche mesurés par capteurs de force au sol (VGRF).
+## Objective
+Develop a Deep Learning (1D-CNN) model capable of detecting Parkinson's disease from ground reaction force (VGRF) signals measured during walking.
 
 ## Dataset
-- Source : [PhysioNet GaitPDB](https://physionet.org/content/gaitpdb/1.0.0/)
-- Capteurs de marche VGRF (16 capteurs par pied)
-- Données temporelles de personnes saines et atteintes de Parkinson
-- Prétraitement : normalisation et padding des signaux
+- Source: [PhysioNet GaitPDB](https://physionet.org/content/gaitpdb/1.0.0/)
+- VGRF walking sensors (16 sensors per foot)
+- Time-series data from healthy individuals and Parkinson's patients
+- Preprocessing: signal normalization and padding
 
-## Résultats
-| Métrique                 | Valeur |
-|---------------------------|--------|
-| Accuracy                  | 87%    |
-| F1-Score (moyenne)        | 0.87   |
-| Précision (Parkinson)     | 86%    |
-| Rappel (Parkinson)        | 88%    |
+## Results
+| Metric                 | Value |
+|------------------------|-------|
+| Accuracy               | 87%   |
+| F1-Score (average)     | 0.87  |
+| Precision (Parkinson's)| 86%   |
+| Recall (Parkinson's)   | 88%   |
 
-## Modèle
-- Réseau 1D-CNN avec :
-  - 2 couches convolutionnelles + max pooling
+## Model Architecture
+- 1D-CNN network with:
+  - 2 convolutional layers + max pooling
   - Dense layer + Dropout
-  - Sortie softmax pour 2 classes (Parkinson / sain)
-- Optimiseur : Adam
-- Loss : categorical_crossentropy
-- Callbacks : EarlyStopping et ModelCheckpoint
-## Instructions pour reproduire
-1. Placer les données dans le dossier `data/`
-2. Lancer l'entraînement : `python scripts/train_model.py`
-3. Voir les résultats et graphiques générés
-4. Tester des prédictions sur quelques exemples : `python scripts/test_model.py`
+  - Softmax output for 2 classes (Parkinson's / Healthy)
+- Optimizer: Adam
+- Loss: categorical_crossentropy
+- Callbacks: EarlyStopping and ModelCheckpoint
+
+## Key Features
+- 🧠 **Neurological Analysis** - Parkinson's detection from gait patterns
+- 📈 **Time Series Processing** - 1D-CNN for sensor signal analysis
+- 🎯 **High Accuracy** - 87% detection performance
+- 🔬 **Medical Research** - Ground reaction force signal processing
+
+## Technologies Used
+- Python
+- TensorFlow/Keras
+- NumPy
+- Matplotlib
+- Scikit-learn
+- Pandas
+
+## Installation & Usage
+```bash
+# Clone repository
+git clone https://github.com/your-username/parkinson-gait-detection.git
+cd parkinson-gait-detection
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run training
+python scripts/train_model.py
+
+# Test predictions
+python scripts/test_model.py
+Project Structure
+parkinson-gait-detection/
+├── scripts/
+│   ├── train_model.py    # Model training script
+│   └── test_model.py     # Inference and testing
+├── models/               # Trained models
+├── data/                 # Dataset and processed signals
+├── notebooks/            # Data exploration and analysis
+└── results/              # Performance metrics and graphs
+Reproduction Instructions:
+Place the data in the data/ folder
+Launch training: python scripts/train_model.py
+View generated results and graphs
+Test predictions on examples: python scripts/test_model.py
+
+Author
+Imen Ben Henda - Computer Engineering Student
