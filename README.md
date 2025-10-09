@@ -9,7 +9,7 @@ Develop a Deep Learning (1D-CNN) model capable of detecting Parkinson's disease 
 - Time-series data from healthy individuals and Parkinson's patients
 - Preprocessing: signal normalization and padding
 
-📈 ** Model Optimization Journey ** 
+📈 ## Model Optimization Journey ** 
 This project followed an iterative process to transform an initial unstable model into a robust and reliable solution.
 
 Initial Challenge: The first version of the model suffered from high instability and overfitting, making its predictions unreliable.
