@@ -61,14 +61,11 @@ The model is a sequential 1D Convolutional Neural Network (CNN) built with Keras
 ## ⚙️ Installation & Usage
 ```bash
 # 1. Clone the repository
-git clone [https://github.com/your-username/parkinson-gait-detection.git](https://github.com/your-username/parkinson-gait-detection.git)
+git clone (https://github.com/imenbenhenda/Parkinson-Gait-CNN1D.git)
 cd parkinson-gait-detection
 
-# 2. Install dependencies
-pip install -r requirements.txt
-
-# 3. Run training (to reproduce results)
+# 2. Run training (to reproduce results)
 python scripts/train_model.py
 
-# 4. Evaluate the best saved model
+# 3. Evaluate the best saved model
 python scripts/test_model.py
