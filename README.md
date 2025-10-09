@@ -64,7 +64,7 @@ The model is a sequential 1D Convolutional Neural Network (CNN) built with Keras
 git clone (https://github.com/imenbenhenda/Parkinson-Gait-CNN1D.git)
 cd parkinson-gait-detection
 
-# 2. Run training (to reproduce results)
+# 2. Run training 
 python scripts/train_model.py
 
 # 3. Evaluate the best saved model
