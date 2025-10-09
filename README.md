@@ -9,65 +9,19 @@ Develop a Deep Learning (1D-CNN) model capable of detecting Parkinson's disease 
 - Time-series data from healthy individuals and Parkinson's patients
 - Preprocessing: signal normalization and padding
 
-## Results
-| Metric                 | Value |
-|------------------------|-------|
-| Accuracy               | 87%   |
-| F1-Score (average)     | 0.87  |
-| Precision (Parkinson's)| 86%   |
-| Recall (Parkinson's)   | 88%   |
+📈 ** Model Optimization Journey ** 
+This project followed an iterative process to transform an initial unstable model into a robust and reliable solution.
 
-## Model Architecture
-- 1D-CNN network with:
-  - 2 convolutional layers + max pooling
-  - Dense layer + Dropout
-  - Softmax output for 2 classes (Parkinson's / Healthy)
-- Optimizer: Adam
-- Loss: categorical_crossentropy
-- Callbacks: EarlyStopping and ModelCheckpoint
+Initial Challenge: The first version of the model suffered from high instability and overfitting, making its predictions unreliable.
 
-## Key Features
-- 🧠 **Neurological Analysis** - Parkinson's detection from gait patterns
-- 📈 **Time Series Processing** - 1D-CNN for sensor signal analysis
-- 🎯 **High Accuracy** - 87% detection performance
-- 🔬 **Medical Research** - Ground reaction force signal processing
+Improvement Strategy: A series of optimizations were implemented:
 
-## Technologies Used
-- Python
-- TensorFlow/Keras
-- NumPy
-- Matplotlib
-- Scikit-learn
-- Pandas
+Enhanced Regularization: Use of multiple Dropout layers with adjusted rates (0.4 and 0.5) to prevent overfitting.
 
-## Installation & Usage
-```bash
-# Clone repository
-git clone https://github.com/your-username/parkinson-gait-detection.git
-cd parkinson-gait-detection
+Training Refinement: Optimization of the learning rate (set to 0.0003) and use of Keras callbacks (ReduceLROnPlateau, EarlyStopping) to stabilize and optimize convergence.
 
-# Install dependencies
-pip install -r requirements.txt
+Data Enhancement: Application of oversampling with RandomOverSampler to balance the classes and use of data augmentation (adding noise) to create a more robust dataset.
 
-# Run training
-python scripts/train_model.py
-
-# Test predictions
-python scripts/test_model.py
-Project Structure
-parkinson-gait-detection/
-├── scripts/
-│   ├── train_model.py    # Model training script
-│   └── test_model.py     # Inference and testing
-├── models/               # Trained models
-├── data/                 # Dataset and processed signals
-├── notebooks/            # Data exploration and analysis
-└── results/              # Performance metrics and graphs
-Reproduction Instructions:
-Place the data in the data/ folder
-Launch training: python scripts/train_model.py
-View generated results and graphs
-Test predictions on examples: python scripts/test_model.py
-
+Result: A final stable model that does not overfit and whose performance is reliable and reproducible.
 Author
 Imen Ben Henda - Computer Engineering Student
