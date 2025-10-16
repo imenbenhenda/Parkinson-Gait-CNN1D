@@ -1,62 +1,54 @@
+# ==============================================================================
+# 1. IMPORTATIONS
+# ==============================================================================
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from tensorflow.keras.models import load_model
-from preprocess_signals import read_signals, normalize_signals, pad_signals
-from load_data import load_demographics, get_file_labels
-from sklearn.metrics import confusion_matrix, classification_report
 import seaborn as sns
+from tensorflow.keras.models import load_model
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, classification_report
 
-# --- 1. Définir chemins ---
-project_path = os.path.dirname(os.path.abspath(__file__))  # dossier scripts/
-data_path = os.path.join(project_path, "../data")          # dossier data
-model_path = os.path.join(project_path, "../models/best_model.keras")
-model_path = os.path.abspath(model_path)  # chemin absolu
+# Importations depuis vos modules locaux
+from load_data import load_demographics, get_file_labels
+from preprocess_signals import read_signals, normalize_signals, pad_signals, reduce_signal_length
 
-print("Chemin du modèle :", model_path)
+# ==============================================================================
+# 2. CONSTANTES ET CONFIGURATION
+# ==============================================================================
+# Définir les chemins principaux une seule fois
+PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(PROJECT_PATH, "../data")
+MODEL_PATH = os.path.join(PROJECT_PATH, "../models/best_model.keras")
 
-# --- 2. Charger les données ---
-demographics = load_demographics(data_path)
-all_files, file_labels = get_file_labels(data_path, demographics)
+# Définir les noms des classes pour les graphiques
+CLASS_NAMES = ['Contrôle', 'Parkinson']
 
-X, y = read_signals(all_files, file_labels)
-X_norm = normalize_signals(X)
-X_array = pad_signals(X_norm)
-y_array = np.array(y)
+# ==============================================================================
+# 3. FONCTIONS UTILITAIRES ET D'ANALYSE
+# ==============================================================================
 
-print("Forme des données :", X_array.shape)
-print("Forme des labels :", y_array.shape)
-print("Étiquettes uniques :", np.unique(y_array))
+def load_and_preprocess_data(data_path):
+    """Charge et prépare les données pour l'évaluation."""
+    print("--- Étape 1: Chargement et Prétraitement des Données ---")
+    demographics = load_demographics(data_path)
+    all_files, file_labels = get_file_labels(data_path, demographics)
 
-# --- 3. Charger le modèle ---
-best_model = load_model(model_path)
-print("Modèle chargé avec succès !")
-print("Shape attendu par le modèle :", best_model.input_shape)
+    X, y = read_signals(all_files, file_labels)
+    X_norm = normalize_signals(X)
+    X_array = pad_signals(X_norm)
+    
+    # Étape cruciale : s'assurer que les données de test ont la même forme que les données d'entraînement
+    X_array = reduce_signal_length(X_array, target_length=1000)
+    y_array = np.array(y)
+    
+    print(f"Forme des données après prétraitement : {X_array.shape}")
+    print("Chargement terminé.\n")
+    return X_array, y_array
 
-# Vérification compatibilité
-if X_array.shape[1:] != best_model.input_shape[1:]:
-    raise ValueError(
-        f"Dimensions des données {X_array.shape[1:]} incompatibles avec le modèle {best_model.input_shape[1:]}"
-    )
 
-# --- 4. Split des données pour évaluation ---
-X_train, X_test, y_train, y_test = train_test_split(
-    X_array, y_array, 
-    test_size=0.2, 
-    stratify=y_array,
-    random_state=42
-)
-
-# --- 5. Prédictions complètes ---
-y_pred_probs = best_model.predict(X_test)
-y_pred = np.argmax(y_pred_probs, axis=1)
-
-# --- 6. Matrice de Confusion ---
 def plot_confusion_matrix(y_true, y_pred, classes, normalize=False, title=None):
-    """
-    Cette fonction affiche la matrice de confusion.
-    """
+    """Affiche une matrice de confusion visuellement agréable."""
     cm = confusion_matrix(y_true, y_pred)
     
     if normalize:
@@ -66,80 +58,94 @@ def plot_confusion_matrix(y_true, y_pred, classes, normalize=False, title=None):
         fmt = 'd'
     
     plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt=fmt, cmap='Blues',
-                xticklabels=classes, yticklabels=classes)
-    
+    sns.heatmap(cm, annot=True, fmt=fmt, cmap='Blues', xticklabels=classes, yticklabels=classes)
     plt.title(title or 'Matrice de Confusion')
     plt.ylabel('Vraies étiquettes')
     plt.xlabel('Prédictions')
     plt.show()
 
-# Affichage des deux versions
-plot_confusion_matrix(y_test, y_pred, classes=['Contrôle', 'Parkinson'], 
-                     title='Matrice de Confusion (Valeurs brutes)')
-plot_confusion_matrix(y_test, y_pred, classes=['Contrôle', 'Parkinson'], 
-                     normalize=True, title='Matrice de Confusion Normalisée')
 
-# --- 7. Rapport de classification ---
-print("\nRapport de Classification:")
-print(classification_report(y_test, y_pred, target_names=['Contrôle', 'Parkinson']))
+def evaluate_model(model, X_test, y_test, class_names):
+    """Évalue le modèle, affiche la matrice de confusion et le rapport de classification."""
+    print("--- Étape 3: Évaluation du Modèle ---")
+    y_pred_probs = model.predict(X_test)
+    y_pred = np.argmax(y_pred_probs, axis=1)
 
-# --- 8. Prédire quelques exemples (visualisation) ---
-num_samples = min(10, len(X_test))
-sample_X = X_test[:num_samples]
-sample_y_true = y_test[:num_samples]
-sample_y_pred = y_pred[:num_samples]
-sample_probs = y_pred_probs[:num_samples]
+    # Affichage des matrices de confusion
+    plot_confusion_matrix(y_test, y_pred, classes=class_names, title='Matrice de Confusion (Valeurs brutes)')
+    plot_confusion_matrix(y_test, y_pred, classes=class_names, normalize=True, title='Matrice de Confusion Normalisée')
 
-print("\nComparaison vraie étiquette vs prédiction :")
-for i, (true, pred, probs) in enumerate(zip(sample_y_true, sample_y_pred, sample_probs)):
-    print(f"Exemple {i+1} : Vrai = {true}, Prédit = {pred}, Probabilités = {probs}")
+    # Affichage du rapport de classification
+    print("\nRapport de Classification:")
+    print(classification_report(y_test, y_pred, target_names=class_names))
+    print("Évaluation terminée.\n")
 
-# --- 9. Graphique des prédictions ---
-plt.figure(figsize=(10,4))
-plt.bar(np.arange(num_samples) - 0.2, sample_y_true, width=0.4, label='Vrai')
-plt.bar(np.arange(num_samples) + 0.2, sample_y_pred, width=0.4, label='Prédit')
-plt.xlabel("Exemple")
-plt.ylabel("Classe")
-plt.title("Vrai vs Prédiction")
-plt.legend()
-plt.grid(True)
-plt.show()
 
-# --- 10. Tracer les signaux des exemples ---
-for i in range(num_samples):
-    plt.figure(figsize=(12,4))
-    plt.title(f"Exemple {i+1} - Vrai: {sample_y_true[i]} / Prédit: {sample_y_pred[i]}\n"
-              f"Probabilités: Contrôle={sample_probs[i][0]:.2f}, Parkinson={sample_probs[i][1]:.2f}")
-    for j in range(X_array.shape[2]):
-        plt.plot(sample_X[i,:,j], label=f"Capteur {j+1}")
-    plt.xlabel("Temps")
-    plt.ylabel("Amplitude normalisée")
-    plt.legend(loc='upper right')
-    plt.grid(True)
-    plt.show()
+def visualize_errors(model, X_test, y_test, class_names):
+    """Trouve et visualise les signaux des prédictions incorrectes."""
+    print("--- Étape 4: Analyse des Erreurs ---")
+    y_pred_probs = model.predict(X_test)
+    y_pred = np.argmax(y_pred_probs, axis=1)
+    
+    errors = np.where(y_pred != y_test)[0]
+    print(f"Nombre d'erreurs: {len(errors)}/{len(y_test)} ({len(errors)/len(y_test):.1%})")
 
-# --- 11. Visualisation des erreurs ---
-errors = np.where(y_pred != y_test)[0]
-print(f"\nNombre d'erreurs: {len(errors)}/{len(y_test)} ({len(errors)/len(y_test):.1%})")
+    if len(errors) > 0:
+        print("Affichage des 3 premières erreurs de prédiction...")
+        for i, error_idx in enumerate(errors[:3]):
+            true_label = y_test[error_idx]
+            pred_label = y_pred[error_idx]
+            probs = y_pred_probs[error_idx]
+            
+            plt.figure(figsize=(12, 4))
+            plt.title(
+                f"Erreur {i+1} - Vrai: {class_names[true_label]} | Prédit: {class_names[pred_label]}\n"
+                f"Probabilités: {class_names[0]}={probs[0]:.2f}, {class_names[1]}={probs[1]:.2f}"
+            )
+            for j in range(X_test.shape[2]):
+                plt.plot(X_test[error_idx, :, j], label=f"Capteur {j+1}")
+            
+            plt.xlabel("Temps")
+            plt.ylabel("Amplitude normalisée")
+            plt.legend()
+            plt.grid(True)
+            plt.show()
+    print("Analyse des erreurs terminée.\n")
 
-if len(errors) > 0:
-    print("\nAnalyse des erreurs:")
-    for i, error_idx in enumerate(errors[:3]):  # Affiche les 3 premières erreurs
-        true_label = y_test[error_idx]
-        pred_label = y_pred[error_idx]
-        probs = y_pred_probs[error_idx]
-        
-        plt.figure(figsize=(12,4))
-        plt.title(f"Erreur {i+1} - Vrai: {'Parkinson' if true_label else 'Contrôle'} | "
-                 f"Prédit: {'Parkinson' if pred_label else 'Contrôle'}\n"
-                 f"Probabilités: Contrôle={probs[0]:.2f}, Parkinson={probs[1]:.2f}")
-        
-        for j in range(X_array.shape[2]):
-            plt.plot(X_test[error_idx,:,j], label=f"Capteur {j+1}")
-        
-        plt.xlabel("Temps")
-        plt.ylabel("Amplitude normalisée")
-        plt.legend()
-        plt.grid(True)
-        plt.show()
+# ==============================================================================
+# 4. SCRIPT PRINCIPAL
+# ==============================================================================
+
+def main():
+    """Fonction principale qui orchestre le chargement, l'évaluation et la visualisation."""
+    
+    # Étape 1 : Chargement et préparation des données
+    X_array, y_array = load_and_preprocess_data(DATA_PATH)
+    
+    # Étape 2 : Chargement du modèle entraîné
+    print("--- Étape 2: Chargement du Modèle Entraîné ---")
+    print(f"Chemin du modèle : {MODEL_PATH}")
+    model = load_model(MODEL_PATH)
+    print("Modèle chargé avec succès !")
+    
+    # Vérification de la compatibilité des dimensions
+    if X_array.shape[1:] != model.input_shape[1:]:
+        raise ValueError(
+            f"Dimensions des données {X_array.shape[1:]} incompatibles avec le modèle {model.input_shape[1:]}"
+        )
+    print("Compatibilité des dimensions vérifiée.\n")
+    
+    # Division des données en ensembles de test et d'entraînement (pour l'évaluation)
+    # Note : On ne ré-entraîne pas, on utilise juste X_test et y_test.
+    _, X_test, _, y_test = train_test_split(
+        X_array, y_array, test_size=0.2, stratify=y_array, random_state=42
+    )
+
+    # Étape 3 : Évaluation complète du modèle
+    evaluate_model(model, X_test, y_test, CLASS_NAMES)
+    
+    # Étape 4 : Visualisation des erreurs
+    visualize_errors(model, X_test, y_test, CLASS_NAMES)
+
+if __name__ == '__main__':
+    main()

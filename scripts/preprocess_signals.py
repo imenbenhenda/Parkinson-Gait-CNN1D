@@ -1,6 +1,21 @@
 import numpy as np
 import pandas as pd
 
+def reduce_signal_length(X, target_length=1000):
+    """
+    Réduit la longueur des signaux pour éviter le sur-apprentissage
+    """
+    X_reduced = []
+    for signal in X:
+        if len(signal) > target_length:
+            # Réduction simple : prendre les premiers target_length points
+            reduced = signal[:target_length]
+        else:
+            # Si le signal est plus court, on le pad
+            reduced = np.pad(signal, ((0, target_length - len(signal)), (0, 0)), mode='constant')
+        X_reduced.append(reduced)
+    return np.array(X_reduced)
+
 def read_signals(files, file_labels):
     X, y = [], []
     for f in files:
