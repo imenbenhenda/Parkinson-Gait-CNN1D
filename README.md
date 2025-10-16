@@ -1,36 +1,65 @@
-# Détection de la Maladie de Parkinson à partir de la marche
+Parkinson's Disease Detection from Gait Analysis
+🎯 Objective
+To develop a Deep Learning (1D-CNN) model capable of detecting Parkinson's disease from Vertical Ground Reaction Force (VGRF) signals measured during walking.
 
-## Objectif
-Développer un modèle de Deep Learning (CNN 1D) capable de détecter la maladie de Parkinson à partir de signaux de marche mesurés par capteurs de force au sol (VGRF).
+💾 Dataset
+Source: The data used in this project is from the Gait in Parkinson's Disease Database available on PhysioNet.
 
-## Dataset
-  https://physionet.org/content/gaitpdb/1.0.0/
-- Capteurs de marche VGRF (16 capteurs par pied)
-- Données temporelles de personnes saines et atteintes de Parkinson
-- Prétraitement : normalisation et padding des signaux
+Content: It consists of time-series data from 16 underfoot sensors, measuring the Vertical Ground Reaction Force (VGRF) of both healthy individuals and patients with Parkinson's disease.
 
-##  Résultats
-| Métrique       | Valeur |
-|---------------|--------|
-| Accuracy      | 89.5%  |
-| F1-Score (moy)| 0.80   |
-| Précision (Parkinson) | 91% |
-| Rappel (Parkinson)    | 67% |
+Preprocessing: The signals were preprocessed through normalization, padding to a uniform length, and balancing using oversampling techniques.
 
+📈 Model Optimization Journey
+This project followed an iterative process to transform an initial unstable model into a robust and reliable solution.
 
+Initial Challenge: The first version of the model suffered from high instability and overfitting, making its predictions unreliable.
 
-## Modèle
-- Réseau 1D-CNN avec :
-  - 2 couches convolutionnelles + max pooling
-  - Dense layer avec régularisation L2 et Dropout
-  - Sortie softmax pour 2 classes (Parkinson / sain)
-- Optimiseur : Adam
-- Loss : categorical_crossentropy
-- Callback : EarlyStopping et ModelCheckpoint
+Improvement Strategy: A series of optimizations were implemented:
 
-## Instructions pour reproduire
-1. Installer les dépendances : `pip install -r requirements.txt`
-2. Placer les données dans le dossier `data/`
-3. Lancer l'entraînement : `python scripts/train_model.py`
-4. Voir les résultats et graphiques générés
-5. Tester des prédictions sur quelques exemples : `python scripts/test_model.py`
+Enhanced Regularization: Use of multiple Dropout layers with adjusted rates (0.4 and 0.5) to prevent overfitting.
+
+Training Refinement: Optimization of the learning rate (set to 0.0003) and use of Keras callbacks (ReduceLROnPlateau, EarlyStopping) to stabilize and optimize convergence.
+
+Data Enhancement: Application of oversampling with RandomOverSampler to balance the classes and use of data augmentation (adding noise) to create a more robust dataset.
+
+Result: A final stable model that does not overfit and whose performance is reliable and reproducible.
+
+📊 Final Performance
+The optimized model achieves the following performance on the test set:
+
+Metric	Value
+Accuracy	87%
+F1-Score (average)	0.87
+Precision (Parkinson's)	84%
+Recall (Parkinson's)	91%
+
+Exporter vers Sheets
+🛠️ Model Architecture
+The model is a sequential 1D Convolutional Neural Network (CNN) built with Keras.
+
+Two Convolutional Blocks: Each block consists of a Conv1D layer (ReLU), a BatchNormalization layer, and a MaxPooling1D layer.
+
+Strong Regularization: Dropout layers are integrated to prevent overfitting.
+
+Classification Head: A GlobalAveragePooling1D layer followed by Dense layers with a Softmax activation for the final classification.
+
+Optimizer & Loss Function:
+
+Optimizer: Adam (learning rate of 0.0003).
+
+Loss Function: categorical_crossentropy.
+
+Robust Training Strategy: Use of EarlyStopping, ModelCheckpoint, and ReduceLROnPlateau.
+
+🚀 Technologies Used
+Python
+
+TensorFlow / Keras
+
+Scikit-learn
+
+NumPy / Pandas
+
+Matplotlib / Seaborn
+
+⚙️ Installation & Usage
