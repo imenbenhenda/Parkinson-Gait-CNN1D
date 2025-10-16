@@ -7,6 +7,9 @@ To develop a Deep Learning (1D-CNN) model capable of detecting Parkinson's disea
 
 ## 💾 Dataset
 * **Source:** The data used in this project is from the Gait in Parkinson's Disease Database available on [PhysioNet](https://physionet.org/content/gaitpdb/1.0.0/).
+* **License**: Open Data Commons Attribution License v1.0  
+* **Ethical Approval**: Data anonymized and collected with patient consent  
+* **Citations**: Goldberger et al. (2000) - Standard PhysioNet citation
 * **Content:** It consists of time-series data from 16 underfoot sensors, measuring the Vertical Ground Reaction Force (VGRF) of both healthy individuals and patients with Parkinson's disease.
 * **Preprocessing:** The signals were preprocessed through normalization, padding to a uniform length, and balancing using oversampling techniques.
 
