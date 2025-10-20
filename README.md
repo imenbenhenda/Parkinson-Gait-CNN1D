@@ -7,11 +7,11 @@ To develop a Deep Learning (1D-CNN) model capable of detecting Parkinson's disea
 
 ## 💾 Dataset
 * **Source:** The data used in this project is from the Gait in Parkinson's Disease Database available on [PhysioNet](https://physionet.org/content/gaitpdb/1.0.0/).
-* **License**: Open Data Commons Attribution License v1.0  
-* **Ethical Approval**: Data anonymized and collected with patient consent  
+* **License**: Open Data Commons Attribution License v1.0
+* **Ethical Approval**: Data anonymized and collected with patient consent
 * **Citations**: Goldberger et al. (2000) - Standard PhysioNet citation
 * **Content:** It consists of time-series data from 16 underfoot sensors, measuring the Vertical Ground Reaction Force (VGRF) of both healthy individuals and patients with Parkinson's disease.
-* **Preprocessing:** The signals were preprocessed through normalization, padding to a uniform length, and balancing using oversampling techniques.
+* **Preprocessing:** Signals were normalized, unified to a fixed length (`1000` points) by truncation or padding, and the training set was balanced using oversampling and noise augmentation.
 
 ---
 
@@ -20,35 +20,39 @@ This project followed an iterative process to transform an initial unstable mode
 
 * **Initial Challenge:** The first version of the model suffered from high instability and overfitting, making its predictions unreliable.
 * **Improvement Strategy:** A series of optimizations were implemented:
-    * **Enhanced Regularization:** Use of multiple `Dropout` layers with adjusted rates (0.4 and 0.5) to prevent overfitting.
-    * **Training Refinement:** Optimization of the learning rate (set to `0.0003`) and use of Keras callbacks (`ReduceLROnPlateau`, `EarlyStopping`) to stabilize and optimize convergence.
-    * **Data Enhancement:** Application of oversampling with `RandomOverSampler` to balance the classes and use of data augmentation (adding noise) to create a more robust dataset.
-* **Result:** A final stable model that does not overfit and whose performance is reliable and reproducible.
+    * **Methodology Correction:** Ensured correct data splitting **before** applying oversampling and augmentation to prevent data leakage, providing a reliable evaluation.
+    * **Hyperparameter Tuning for Stability:** Adjusted learning rate (`0.0001`), batch size (`32`), and dropout rates (`0.3`) to achieve stable and smooth convergence during training.
+    * **Data Handling:** Used `RandomOverSampler` for class balancing and added noise augmentation **only** on the training set. Keras callbacks (`ReduceLROnPlateau`, `EarlyStopping`, `ModelCheckpoint`) were used to manage training effectively and save the best performing model based on validation accuracy.
+* **Result:** A final stable model that demonstrates good generalization (minimal overfitting) and achieves reliable performance. Random seeds were fixed for reproducibility.
 
 ---
 
 ## 📊 Final Performance
-The optimized model achieves the following performance on the test set:
+The final optimized model achieves the following performance on the **validation set** (using the weights saved at the best epoch by `ModelCheckpoint`):
 
-| Metric                 | Value   |
-| :--------------------- | :------ |
-| **Accuracy** | **87%** |
-| **F1-Score (average)** | **0.87**|
-| **Precision (Parkinson's)** | **84%** |
-| **Recall (Parkinson's)** | **91%** |
+| Metric                  | Value   |
+| :---------------------- | :------ |
+| **Accuracy (Validation)** | **87%** |
+| **F1-Score (average)** | **0.88**|
+| **Precision (Parkinson's)** | **91%** |
+| **Recall (Parkinson's)** | **95%** |
+
+*Note: The performance metrics are based on the model's evaluation on the validation split.*
 
 ---
 
 ## 🛠️ Model Architecture
-The model is a sequential 1D Convolutional Neural Network (CNN) built with Keras.
+The model is a sequential 1D Convolutional Neural Network (CNN) built with Keras, designed for time-series classification.
 
-* **Two Convolutional Blocks:** Each block consists of a `Conv1D` layer (ReLU), a `BatchNormalization` layer, and a `MaxPooling1D` layer.
-* **Strong Regularization:** `Dropout` layers are integrated to prevent overfitting.
-* **Classification Head:** A `GlobalAveragePooling1D` layer followed by `Dense` layers with a `Softmax` activation for the final classification.
+* **Input Layer:** Expects input sequences of shape `(1000, 16)`.
+* **Two Convolutional Blocks:**
+    1.  `Conv1D` (16 filters, kernel size 5, ReLU) -> `BatchNormalization` -> `MaxPooling1D`
+    2.  `Conv1D` (32 filters, kernel size 3, ReLU) -> `BatchNormalization` -> `MaxPooling1D` -> `Dropout(0.3)`
+* **Classification Head:** `GlobalAveragePooling1D` -> `Dense` (32 units, ReLU) -> `Dropout(0.3)` -> `Dense` (2 units, Softmax).
 * **Optimizer & Loss Function:**
-    * **Optimizer:** `Adam` (learning rate of `0.0003`).
+    * **Optimizer:** `Adam` (learning rate optimized to `0.0001`).
     * **Loss Function:** `categorical_crossentropy`.
-* **Robust Training Strategy:** Use of `EarlyStopping`, `ModelCheckpoint`, and `ReduceLROnPlateau`.
+* **Robust Training Strategy:** Training is managed using `EarlyStopping` (patience=15 on `val_accuracy`), `ModelCheckpoint` (saving the best model based on `val_accuracy`), and `ReduceLROnPlateau` (reducing learning rate on `val_loss` plateau).
 
 ---
 
@@ -58,17 +62,24 @@ The model is a sequential 1D Convolutional Neural Network (CNN) built with Keras
 * Scikit-learn
 * NumPy / Pandas
 * Matplotlib / Seaborn
+* Imbalanced-learn (`imblearn`)
 
 ---
 
 ## ⚙️ Installation & Usage
 ```bash
 # 1. Clone the repository
-git clone (https://github.com/imenbenhenda/Parkinson-Gait-CNN1D.git)
-cd parkinson-gait-detection
+git clone [https://github.com/imenbenhenda/Parkinson-Gait-CNN1D.git](https://github.com/imenbenhenda/Parkinson-Gait-CNN1D.git)
+cd Parkinson-Gait-CNN1D
 
-# 2. Run training 
-python scripts/train_model.py
+# 2. Create and activate a virtual environment (Recommended)
+# python -m venv venv
+# .\venv\Scripts\activate  # On Windows PowerShell
+# source venv/bin/activate # On macOS/Linux
 
-# 3. Evaluate the best saved model
-python scripts/test_model.py
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Run training (Generates models/best_model.keras and results/training_curves.png)
+python src/train_model.py
+
