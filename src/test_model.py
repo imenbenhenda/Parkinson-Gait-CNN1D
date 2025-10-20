@@ -1,5 +1,5 @@
 # ==============================================================================
-# 1. IMPORTATIONS
+# 1. IMPORTS
 # ==============================================================================
 import os
 import numpy as np
@@ -8,47 +8,43 @@ import seaborn as sns
 from tensorflow.keras.models import load_model
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
-
-# Importations depuis vos modules locaux
 from load_data import load_demographics, get_file_labels
-from preprocess_signals import read_signals, normalize_signals, pad_signals, reduce_signal_length
+from preprocess_signals import read_signals, normalize_signals, unify_signal_length
 
 # ==============================================================================
-# 2. CONSTANTES ET CONFIGURATION
+# 2. CONSTANTS AND CONFIGURATION
 # ==============================================================================
-# Définir les chemins principaux une seule fois
+# Define main paths
 PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(PROJECT_PATH, "../data")
 MODEL_PATH = os.path.join(PROJECT_PATH, "../models/best_model.keras")
 
-# Définir les noms des classes pour les graphiques
-CLASS_NAMES = ['Contrôle', 'Parkinson']
+# Define class names for plots
+CLASS_NAMES = ['Control', 'Parkinson']
+TARGET_SIGNAL_LENGTH = 1000  
 
 # ==============================================================================
-# 3. FONCTIONS UTILITAIRES ET D'ANALYSE
+# 3. UTILITY AND ANALYSIS FUNCTIONS
 # ==============================================================================
 
 def load_and_preprocess_data(data_path):
-    """Charge et prépare les données pour l'évaluation."""
-    print("--- Étape 1: Chargement et Prétraitement des Données ---")
+    """Load and preprocess data for model evaluation."""
+    print("--- Step 1: Loading and Preprocessing Data ---")
     demographics = load_demographics(data_path)
     all_files, file_labels = get_file_labels(data_path, demographics)
 
     X, y = read_signals(all_files, file_labels)
     X_norm = normalize_signals(X)
-    X_array = pad_signals(X_norm)
-    
-    # Étape cruciale : s'assurer que les données de test ont la même forme que les données d'entraînement
-    X_array = reduce_signal_length(X_array, target_length=1000)
+    X_array = unify_signal_length(X_norm, target_length=TARGET_SIGNAL_LENGTH)  
     y_array = np.array(y)
     
-    print(f"Forme des données après prétraitement : {X_array.shape}")
-    print("Chargement terminé.\n")
+    print(f"Data shape after preprocessing: {X_array.shape}")
+    print("Loading completed.\n")
     return X_array, y_array
 
 
 def plot_confusion_matrix(y_true, y_pred, classes, normalize=False, title=None):
-    """Affiche une matrice de confusion visuellement agréable."""
+    """Display a visually clear confusion matrix."""
     cm = confusion_matrix(y_true, y_pred)
     
     if normalize:
@@ -59,39 +55,39 @@ def plot_confusion_matrix(y_true, y_pred, classes, normalize=False, title=None):
     
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt=fmt, cmap='Blues', xticklabels=classes, yticklabels=classes)
-    plt.title(title or 'Matrice de Confusion')
-    plt.ylabel('Vraies étiquettes')
-    plt.xlabel('Prédictions')
+    plt.title(title or 'Confusion Matrix')
+    plt.ylabel('True Labels')
+    plt.xlabel('Predicted Labels')
     plt.show()
 
 
 def evaluate_model(model, X_test, y_test, class_names):
-    """Évalue le modèle, affiche la matrice de confusion et le rapport de classification."""
-    print("--- Étape 3: Évaluation du Modèle ---")
+    """Evaluate model performance and display confusion matrix and classification report."""
+    print("--- Step 3: Model Evaluation ---")
     y_pred_probs = model.predict(X_test)
     y_pred = np.argmax(y_pred_probs, axis=1)
 
-    # Affichage des matrices de confusion
-    plot_confusion_matrix(y_test, y_pred, classes=class_names, title='Matrice de Confusion (Valeurs brutes)')
-    plot_confusion_matrix(y_test, y_pred, classes=class_names, normalize=True, title='Matrice de Confusion Normalisée')
+    # Display confusion matrices
+    plot_confusion_matrix(y_test, y_pred, classes=class_names, title='Confusion Matrix (Raw Values)')
+    plot_confusion_matrix(y_test, y_pred, classes=class_names, normalize=True, title='Normalized Confusion Matrix')
 
-    # Affichage du rapport de classification
-    print("\nRapport de Classification:")
+    # Display classification report
+    print("\nClassification Report:")
     print(classification_report(y_test, y_pred, target_names=class_names))
-    print("Évaluation terminée.\n")
+    print("Evaluation completed.\n")
 
 
 def visualize_errors(model, X_test, y_test, class_names):
-    """Trouve et visualise les signaux des prédictions incorrectes."""
-    print("--- Étape 4: Analyse des Erreurs ---")
+    """Identify and visualize misclassified signals."""
+    print("--- Step 4: Error Analysis ---")
     y_pred_probs = model.predict(X_test)
     y_pred = np.argmax(y_pred_probs, axis=1)
     
     errors = np.where(y_pred != y_test)[0]
-    print(f"Nombre d'erreurs: {len(errors)}/{len(y_test)} ({len(errors)/len(y_test):.1%})")
+    print(f"Number of errors: {len(errors)}/{len(y_test)} ({len(errors)/len(y_test):.1%})")
 
     if len(errors) > 0:
-        print("Affichage des 3 premières erreurs de prédiction...")
+        print("Displaying the first 3 misclassified samples...")
         for i, error_idx in enumerate(errors[:3]):
             true_label = y_test[error_idx]
             pred_label = y_pred[error_idx]
@@ -99,52 +95,51 @@ def visualize_errors(model, X_test, y_test, class_names):
             
             plt.figure(figsize=(12, 4))
             plt.title(
-                f"Erreur {i+1} - Vrai: {class_names[true_label]} | Prédit: {class_names[pred_label]}\n"
-                f"Probabilités: {class_names[0]}={probs[0]:.2f}, {class_names[1]}={probs[1]:.2f}"
+                f"Error {i+1} - True: {class_names[true_label]} | Predicted: {class_names[pred_label]}\n"
+                f"Probabilities: {class_names[0]}={probs[0]:.2f}, {class_names[1]}={probs[1]:.2f}"
             )
             for j in range(X_test.shape[2]):
-                plt.plot(X_test[error_idx, :, j], label=f"Capteur {j+1}")
+                plt.plot(X_test[error_idx, :, j], label=f"Sensor {j+1}")
             
-            plt.xlabel("Temps")
-            plt.ylabel("Amplitude normalisée")
+            plt.xlabel("Time")
+            plt.ylabel("Normalized Amplitude")
             plt.legend()
             plt.grid(True)
             plt.show()
-    print("Analyse des erreurs terminée.\n")
+    print("Error analysis completed.\n")
 
 # ==============================================================================
-# 4. SCRIPT PRINCIPAL
+# 4. MAIN SCRIPT
 # ==============================================================================
 
 def main():
-    """Fonction principale qui orchestre le chargement, l'évaluation et la visualisation."""
+    """Main function to orchestrate data loading, evaluation, and visualization."""
     
-    # Étape 1 : Chargement et préparation des données
+    # Step 1: Load and preprocess data
     X_array, y_array = load_and_preprocess_data(DATA_PATH)
     
-    # Étape 2 : Chargement du modèle entraîné
-    print("--- Étape 2: Chargement du Modèle Entraîné ---")
-    print(f"Chemin du modèle : {MODEL_PATH}")
+    # Step 2: Load the trained model
+    print("--- Step 2: Loading Trained Model ---")
+    print(f"Model path: {MODEL_PATH}")
     model = load_model(MODEL_PATH)
-    print("Modèle chargé avec succès !")
+    print("Model successfully loaded!")
     
-    # Vérification de la compatibilité des dimensions
+    # Verify shape compatibility
     if X_array.shape[1:] != model.input_shape[1:]:
         raise ValueError(
-            f"Dimensions des données {X_array.shape[1:]} incompatibles avec le modèle {model.input_shape[1:]}"
+            f"Data dimensions {X_array.shape[1:]} are incompatible with model input {model.input_shape[1:]}"
         )
-    print("Compatibilité des dimensions vérifiée.\n")
+    print("Input shape verified.\n")
     
-    # Division des données en ensembles de test et d'entraînement (pour l'évaluation)
-    # Note : On ne ré-entraîne pas, on utilise juste X_test et y_test.
+    # Step 3: Split data for evaluation (no retraining)
     _, X_test, _, y_test = train_test_split(
         X_array, y_array, test_size=0.2, stratify=y_array, random_state=42
     )
 
-    # Étape 3 : Évaluation complète du modèle
+    # Step 4: Evaluate the model
     evaluate_model(model, X_test, y_test, CLASS_NAMES)
     
-    # Étape 4 : Visualisation des erreurs
+    # Step 5: Visualize misclassified samples
     visualize_errors(model, X_test, y_test, CLASS_NAMES)
 
 if __name__ == '__main__':
