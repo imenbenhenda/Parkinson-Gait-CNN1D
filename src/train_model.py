@@ -5,6 +5,7 @@ import os
 import numpy as np
 import collections
 import matplotlib.pyplot as plt
+import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import (
     Conv1D, MaxPooling1D, GlobalAveragePooling1D, Dense, Dropout, 
@@ -20,7 +21,13 @@ from sklearn.metrics import classification_report
 from imblearn.over_sampling import RandomOverSampler
 from load_data import load_demographics, get_file_labels
 from preprocess_signals import read_signals, normalize_signals, unify_signal_length
-
+# ======================================================================
+# Control Randomness for Reproducible Results
+# ======================================================================
+RANDOM_SEED = 42
+os.environ['PYTHONHASHSEED'] = str(RANDOM_SEED)
+np.random.seed(RANDOM_SEED)
+tf.random.set_seed(RANDOM_SEED)
 # ======================================================================
 # Global Configuration
 # ======================================================================
@@ -56,8 +63,8 @@ def create_model(input_shape):
         Conv1D(32, kernel_size=3, activation='relu', padding='same'),
         BatchNormalization(),
         MaxPooling1D(pool_size=2),
-
         Dropout(0.3),
+    
         GlobalAveragePooling1D(),
         Dense(32, activation='relu'),
         Dropout(0.3),
